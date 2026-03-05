@@ -1,22 +1,20 @@
-resource "azurerm_resource_group" "example" {
-  name     = "rg-terraform-demo"
-  location = "East US"
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = var.location
 }
 
-resource "azurerm_service_plan" "example" {
-  name                = "terraform-appservice-plan"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-
-  os_type  = "Linux"
-  sku_name = "B1"
+resource "azurerm_mssql_server" "sqlserver" {
+  name                         = var.sql_server_name
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
+  version                      = "12.0"
+  administrator_login          = var.admin_username
+  administrator_login_password = var.admin_password
 }
 
-resource "azurerm_linux_web_app" "example" {
-  name                = "terraform-demo-webapp-001"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  service_plan_id     = azurerm_service_plan.example.id
-
-  site_config {}
+resource "azurerm_mssql_database" "sqldb" {
+  name           = var.database_name
+  server_id      = azurerm_mssql_server.sqlserver.id
+  sku_name       = "Basic"
+  max_size_gb    = 2
 }
